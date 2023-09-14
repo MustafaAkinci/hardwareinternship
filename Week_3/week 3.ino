@@ -28,7 +28,9 @@ void loop() {
     recordFunction();
   } else if (digitalRead(play) == HIGH) {
     isRecording = false;
-    playFunction();
+    while (true) {
+      playFunction();
+    }
   } else if (!isRecording) {
     normalMovement();
   }
