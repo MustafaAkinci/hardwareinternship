@@ -2,8 +2,8 @@ import machine
 import time
 import ujson
 from umqtt.simple import MQTTClient
-# Seri bağlantıyı yapılandırın (örneğin, UART1)
-uart = machine.UART(1, baudrate=9600, tx=33, rx=32)  # TX ve RX pinleri ESP32'nin kullandığı pinlere göre ayarlayın
+# Configure the serial connection (for example, UART1)
+uart = machine.UART(1, baudrate=9600, tx=33, rx=32)  # Set TX and RX pins according to the pins used by ESP32
 def connect_wifi():
     import network
     ssid = "Akıncı"
@@ -18,19 +18,19 @@ def connect_wifi():
     print("WiFi connection established successfully")
     print(wlan.ifconfig())
 def start():
-    mqtt_broker = "91.121.93.94"  # MQTT broker (sunucu) IP adresi
-    mqtt_topic = "esp32_data"  # MQTT konusu
-    mqtt_client = "esp32_client"  # MQTT istemci adı
-    # MQTT istemcisini oluşturun ve bağlanın
+    mqtt_broker = "91.121.93.94" # MQTT broker (server) IP address
+    mqtt_topic = "esp32_data"  # MQTT topic
+    mqtt_client = "esp32_client"  # MQTT client name
+   # Create MQTT client and connect
     client = MQTTClient(mqtt_client, mqtt_broker)
     client.connect()
     while True:
-        # Arduino'dan gelen verileri okuyun
+        # Read data from Arduino
         data = uart.read()
         if data:
-            # Potansiyometre açı değerini MQTT konusuna yayınlayın
+            # Publish potentiometer angle value to MQTT topic
             client.publish(mqtt_topic, data)
-        time.sleep(1)  # Verileri belirli bir sıklıkta okumak için uygun bir bekleme süresi ayarlayın
-    # Bağlantıyı kapatın
+        time.sleep(1) # Set a suitable waiting time to read data at a certain frequency
+    # Close the connection
     client.disconnect()
 
