@@ -1,50 +1,36 @@
 import machine
 import time
+import ujson
 from umqtt.simple import MQTTClient
-
-uart = machine.UART(1, baudrate=9600, tx=33, rx=32)
-
+# Seri bağlantıyı yapılandırın (örneğin, UART1)
+uart = machine.UART(1, baudrate=9600, tx=33, rx=32)  # TX ve RX pinleri ESP32'nin kullandığı pinlere göre ayarlayın
 def connect_wifi():
     import network
-    
-    ssid = "Galaxy M31F7F8"
+    ssid = "Akıncı"
     password = "123456asdf"
-    
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
-    
     if not wlan.isconnected():
         print("Establishing WiFi connection...")
         wlan.connect(ssid, password)
-        while not wlan.isconnected():
+        if wlan.isconnected():
             pass
     print("WiFi connection established successfully")
     print(wlan.ifconfig())
-
-def publish_data(data = uart.read()):
-    mqtt_server = "95.183.155.169"  
-    mqtt_topic = "esp32_data" 
-    mqtt_client = "esp32_client"  
-    
-    client = MQTTClient(mqtt_client, mqtt_server)
+def start():
+    mqtt_broker = "91.121.93.94"  # MQTT broker (sunucu) IP adresi
+    mqtt_topic = "esp32_data"  # MQTT konusu
+    mqtt_client = "esp32_client"  # MQTT istemci adı
+    # MQTT istemcisini oluşturun ve bağlanın
+    client = MQTTClient(mqtt_client, mqtt_broker)
     client.connect()
-    
-    print("Sending data to MQTT server: ", data)
-    client.publish(mqtt_topic, data)
-    
-    client.disconnect()
-
-def main():
-    connect_wifi()
     while True:
+        # Arduino'dan gelen verileri okuyun
         data = uart.read()
         if data:
-            decoded_data = data.decode("utf-8")
-            print("Arduino data received: ", decoded_data)
-            publish_data(decoded_data)
-        
-        time.sleep(1) 
-
-if __name__ == "__main__":
-    main()
+            # Potansiyometre açı değerini MQTT konusuna yayınlayın
+            client.publish(mqtt_topic, data)
+        time.sleep(1)  # Verileri belirli bir sıklıkta okumak için uygun bir bekleme süresi ayarlayın
+    # Bağlantıyı kapatın
+    client.disconnect()
 
